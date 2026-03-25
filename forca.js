@@ -9,7 +9,7 @@
 
 var jogo = {
 
-    palavra: "chuchu".toLowerCase(),
+    palavra: "chuchu".toUpperCase(),
     segredo: [],
     tentadas: new Set(),
     erros: 0,
@@ -69,7 +69,7 @@ var jogo = {
 
 
     registrarVoto: function (mensagem) {
-        var letra = mensagem.trim().toLowerCase();
+        var letra = mensagem.trim().toUpperCase();
         if (this.votos.has(letra)) {
             this.votos.set(letra, this.votos.get(letra) + 1);
         } else {
@@ -95,10 +95,11 @@ jogo.iniciar();
 
 function chutar() {
     var entrada = document.getElementById("entrada").value;
-    jogo.chuteLetra(entrada.trim().toLowerCase());
+    jogo.chuteLetra(entrada.trim().toUpperCase());
     document.getElementById("segredo").innerHTML = jogo.segredo.join(" ");
-    document.getElementById("info").innerHTML = 
+    document.getElementById("info").innerHTML =
         "Erros: " + jogo.erros + "/6 <br> Letras tentadas: " + Array.from(jogo.tentadas).join(", ");
+    document.getElementById("entrada").value = "";
 }
 
 
@@ -108,7 +109,7 @@ function chutar() {
 //Funcoes pra funcionar no terminal
 // function pergunta() {
 //     //rl.question("Digite: ", (entrada) => {
-//         jogo.chuteLetra(entrada.trim().toLowerCase());
+//         jogo.chuteLetra(entrada.trim().toUpperCase());
 //         console.log(jogo.segredo);
 //         if (jogo.loopJogo)
 //             pergunta();
