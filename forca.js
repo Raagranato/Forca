@@ -53,14 +53,17 @@ var jogo = {
             }
         }
         if (this.segredo.join("") == this.palavra) {
-            console.log("Palavra descoberta!");
+            document.getElementById("mensagem").innerHTML = "Palavra descoberta!";//html
+            //console.log("Palavra descoberta!");//terminal
+            leaderboard.registrarVitoria("NomeDoJogador");
             this.loopJogo = false;
             //rl.close();
         }
     },
     chutePalavra: function (chute) {
         if (this.palavra == chute) {
-            console.log("Jogador x acertou a palavra!!");
+            document.getElementById("mensagem").innerHTML = "Fim de Jogo!! A palavra era: " + this.palavra;
+            //console.log("Jogador x acertou a palavra!!");//terminal
             this.loopJogo = false;
             //rl.close();
         }
@@ -80,7 +83,7 @@ var jogo = {
     letraVencedora: function () {
         let melhorLetra = null;
         let melhorContagem = 0;
-        for (let [letra, contagem] of this.votos.entries()) {
+        for (let [letra, contagem] of this.votos.entries()) {//acessa a estruttra e conta qual foi a mais repetida
             if (contagem > melhorContagem) {
                 melhorContagem = contagem;
                 melhorLetra = letra;
@@ -96,12 +99,21 @@ jogo.iniciar();
 document.getElementById("segredo").innerHTML = jogo.segredo.join(" ")
 
 function chutar() {
+
     var entrada = document.getElementById("entrada").value;
+    if (!/^[a-zA-ZÀ-ú]$/.test(entrada)) {//valida se a entrada de letra é so letras msm
+    return;
+}
+    
     jogo.chuteLetra(entrada.trim().toUpperCase());
     document.getElementById("segredo").innerHTML = jogo.segredo.join(" ");
     document.getElementById("info").innerHTML =
         "Erros: " + jogo.erros + "/6 <br> Letras tentadas: " + Array.from(jogo.tentadas).join(", ");
-    document.getElementById("entrada").value = "";
+    document.getElementById("entrada").value = "";//limpa a entrada
+    if (!jogo.loopJogo) {
+    document.getElementById("entrada").disabled = true;
+    document.getElementById("entrada").querySelector("button").disabled = true;
+}
 }
 
 
