@@ -93,6 +93,8 @@ var jogo = {
 
 jogo.iniciar();
 
+document.getElementById("segredo").innerHTML = jogo.segredo.join(" ")
+
 function chutar() {
     var entrada = document.getElementById("entrada").value;
     jogo.chuteLetra(entrada.trim().toUpperCase());
