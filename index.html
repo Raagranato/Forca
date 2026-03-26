@@ -1,24 +1,300 @@
 <!DOCTYPE html>
-<script src="leaderboard.js"></script>
-<script src="forca.js"></script>
-<html>
-
+<html lang="en">
 <head>
-    <title>Jogo da Forca</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Guess</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gb-bg: #9bbc0f;
+            --gb-dark: #0f380f;
+            --gb-mid: #306230;
+            --gb-light: #8bac0f;
+            --white: #f8f8e8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--gb-bg);
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg, transparent, transparent 3px,
+                rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .layout {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-areas:
+                "header header header"
+                "left   center  right"
+                "footer footer footer";
+            gap: 1.2vh;
+            padding: 1.5vh 1.5vw;
+        }
+
+        header {
+            grid-area: header;
+            text-align: center;
+            padding: 0.8vh 0;
+            border-bottom: 3px solid var(--gb-dark);
+        }
+
+        header h1 {
+            font-size: clamp(0.8rem, 2.5vw, 2rem);
+            color: var(--gb-dark);
+            letter-spacing: 4px;
+        }
+
+        .panel {
+            background: var(--white);
+            border: 3px solid var(--gb-dark);
+            box-shadow: 4px 4px 0 var(--gb-dark);
+            padding: 2vh 1.5vw;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5vh;
+            overflow: hidden;
+        }
+
+        .panel-label {
+            font-size: clamp(0.3rem, 0.9vw, 0.6rem);
+            color: var(--gb-mid);
+            border-bottom: 1px solid var(--gb-mid);
+            padding-bottom: 0.8vh;
+            flex-shrink: 0;
+        }
+
+        .left  { grid-area: left; }
+        .right { grid-area: right; }
+
+        #vidas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6%;
+        }
+
+        .coracao {
+            font-size: clamp(1.2rem, 3.5vw, 3rem);
+            line-height: 1;
+            transition: filter 0.2s, transform 0.15s;
+        }
+        .coracao.perdido {
+            filter: grayscale(1) opacity(0.2);
+            transform: scale(0.7);
+        }
+
+        #letras-usadas {
+            font-size: clamp(0.3rem, 1vw, 0.7rem);
+            color: var(--gb-mid);
+            letter-spacing: 2px;
+            word-break: break-all;
+            line-height: 2;
+            flex: 1;
+        }
+
+        .center {
+            grid-area: center;
+            justify-content: space-between;
+        }
+
+        .segredo-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 2px solid var(--gb-dark);
+            border-bottom: 2px solid var(--gb-dark);
+            padding: 1vh 0;
+            overflow: hidden;
+        }
+
+        #segredo {
+            color: var(--gb-dark);
+            text-align: center;
+            white-space: nowrap;
+            letter-spacing: 0.15em;
+        }
+
+        #mensagem {
+            font-size: clamp(0.4rem, 1.2vw, 0.9rem);
+            color: var(--gb-dark);
+            text-align: center;
+            min-height: 1.4em;
+            flex-shrink: 0;
+            animation: blink 0.8s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        .input-row {
+            display: flex;
+            gap: 3%;
+            flex-shrink: 0;
+        }
+
+        #entrada {
+            flex: 1;
+            background: var(--gb-bg);
+            border: 2px solid var(--gb-dark);
+            color: var(--gb-dark);
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(0.8rem, 2.5vw, 2rem);
+            text-align: center;
+            padding: 1.5vh 1vw;
+            outline: none;
+            text-transform: uppercase;
+            box-shadow: 3px 3px 0 var(--gb-dark);
+        }
+        #entrada:disabled { opacity: 0.35; }
+
+        button {
+            background: var(--gb-dark);
+            border: none;
+            color: var(--white);
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(0.3rem, 1vw, 0.7rem);
+            padding: 1.5vh 2vw;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 var(--gb-mid);
+            transition: transform 0.1s, box-shadow 0.1s;
+            white-space: nowrap;
+        }
+        button:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--gb-mid); }
+        button:active { transform: translate(2px,2px);   box-shadow: 2px 2px 0 var(--gb-mid); }
+        button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+        .lb-section { flex-shrink: 0; }
+
+        .lb-section-title {
+            font-size: clamp(0.28rem, 0.85vw, 0.58rem);
+            color: var(--gb-dark);
+            margin-bottom: 0.8vh;
+        }
+
+        .lb-entry {
+            font-size: clamp(0.24rem, 0.75vw, 0.52rem);
+            color: var(--gb-mid);
+            padding: 0.5vh 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 8%;
+            border-bottom: 1px solid var(--gb-light);
+        }
+        .lb-entry .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lb-entry.primeiro { color: var(--gb-dark); }
+        .lb-entry.vazio    { color: var(--gb-light); font-size: clamp(0.2rem, 0.65vw, 0.44rem); }
+
+        footer {
+            grid-area: footer;
+            text-align: center;
+            font-size: clamp(0.2rem, 0.6vw, 0.4rem);
+            color: var(--gb-mid);
+            padding: 0.5vh 0;
+        }
+    </style>
 </head>
-
 <body>
-    <h1>Jogo da Forca</h1>
-    <div id="segredo"></div>
-    <div id="info"></div>
-    <div id="leaderboard"></div>
-    <div id="mensagem"></div>
-    <input type="text" id="entrada" maxlength="1">
-    <button onclick="chutar()">Chutar</button>
-    
+    <div class="layout">
 
+        <header>
+            <h1>★ WORD GUESS ★</h1>
+        </header>
 
+        <!-- Left: lives + used letters -->
+        <div class="panel left">
+            <div class="panel-label">LIVES</div>
+            <div id="vidas">
+                <span class="coracao">❤️</span>
+                <span class="coracao">❤️</span>
+                <span class="coracao">❤️</span>
+                <span class="coracao">❤️</span>
+                <span class="coracao">❤️</span>
+                <span class="coracao">❤️</span>
+            </div>
+
+            <div class="panel-label">USED LETTERS</div>
+            <div id="letras-usadas">—</div>
+        </div>
+
+        <!-- Center: word + message + input -->
+        <div class="panel center">
+            <div class="panel-label">WORD</div>
+
+            <div class="segredo-wrap">
+                <div id="segredo"></div>
+            </div>
+
+            <div id="mensagem"></div>
+
+            <div class="input-row">
+                <input type="text" id="entrada" maxlength="1" placeholder="?">
+                <button onclick="chutar()">GUESS</button>
+            </div>
+        </div>
+
+        <!-- Right: leaderboard -->
+        <div class="panel right">
+            <div class="panel-label">LEADERBOARD</div>
+
+            <div class="lb-section">
+                <div class="lb-section-title">★ TODAY</div>
+                <div id="lb-dia"></div>
+            </div>
+
+            <div class="lb-section">
+                <div class="lb-section-title">★ ALL TIME</div>
+                <div id="lb-geral"></div>
+            </div>
+        </div>
+
+        <footer>WORD GUESS • CHAT EDITION</footer>
+
+    </div>
+
+    <script src="leaderboard.js"></script>
     <script src="forca.js"></script>
-</body>
 
+    <script>
+        function ajustarFonteSegredo() {
+            var wrap = document.querySelector('.segredo-wrap');
+            var el = document.getElementById('segredo');
+            if (!el.textContent.trim()) return;
+
+            var maxW = wrap.clientWidth * 0.92;
+            var maxH = wrap.clientHeight * 0.75;
+            var size = 16;
+
+            el.style.fontSize = size + 'px';
+            while ((el.scrollWidth <= maxW && el.offsetHeight <= maxH) && size < 200) {
+                size += 2;
+                el.style.fontSize = size + 'px';
+            }
+            size -= 4;
+            el.style.fontSize = size + 'px';
+        }
+
+        window.addEventListener('resize', ajustarFonteSegredo);
+    </script>
+</body>
 </html>
