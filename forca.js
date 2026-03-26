@@ -1,8 +1,10 @@
-/*TODO: - If chat guesses the full word they win instantly
-- Leaderboard for top winners
-- !w -> word guess
+/*TODO: - !w -> full word guess
 - !l -> letter guess
+- Connect YouTube Live Chat API
 */
+
+var TEMPO_VOTACAO = 15;   // segundos por rodada
+var TEMPO_ENTRE_ROUNDS = 5; // segundos entre rounds
 
 var jogo = {
     palavra: "chuchu".toUpperCase(),
@@ -14,6 +16,17 @@ var jogo = {
 
     iniciar: function () {
         this.segredo = new Array(this.palavra.length).fill("_");
+        this.tentadas.clear();
+        this.votos.clear();
+        this.erros = 0;
+        this.loopJogo = true;
+        document.getElementById("mensagem").innerHTML = "";
+        this.resetarCoracoes();
+        atualizarTela();
+    },
+
+    resetarCoracoes: function () {
+        document.querySelectorAll('.coracao').forEach(c => c.classList.remove('perdido'));
     },
 
     zeraSet: function () {
@@ -23,13 +36,12 @@ var jogo = {
     chuteLetra: function (char, jogador) {
         if (this.tentadas.has(char)) return;
 
-        if (this.palavra.includes(char) == false) {
+        if (!this.palavra.includes(char)) {
             this.erros++;
             this.tentadas.add(char);
             if (this.erros >= 6) {
                 this.loopJogo = false;
                 document.getElementById("mensagem").innerHTML = "GAME OVER! WORD WAS: " + this.palavra;
-                this.bloquearInput();
             }
         } else {
             this.tentadas.add(char);
@@ -44,29 +56,23 @@ var jogo = {
             }
         }
         if (this.segredo.join("") == this.palavra) {
-            document.getElementById("mensagem").innerHTML = jogador + " FOUND THE WORD!";
             this.loopJogo = false;
-            this.bloquearInput();
+            document.getElementById("mensagem").innerHTML = jogador + " FOUND THE WORD!";
             // leaderboard.registrarVitoria(jogador);
         }
     },
 
     chutePalavra: function (chute, jogador) {
         if (this.palavra == chute.toUpperCase()) {
-            document.getElementById("mensagem").innerHTML = jogador + " FOUND THE WORD!";
             this.loopJogo = false;
-            this.bloquearInput();
+            document.getElementById("mensagem").innerHTML = jogador + " FOUND THE WORD!";
             // leaderboard.registrarVitoria(jogador);
         }
     },
 
-    bloquearInput: function () {
-        document.getElementById("entrada").disabled = true;
-        document.querySelector("button").disabled = true;
-    },
-
     registrarVoto: function (mensagem) {
         var letra = mensagem.trim().toUpperCase();
+        if (letra.length !== 1 || !/[A-ZÀ-Ú]/.test(letra)) return;
         if (this.votos.has(letra)) {
             this.votos.set(letra, this.votos.get(letra) + 1);
         } else {
@@ -88,8 +94,7 @@ var jogo = {
     }
 }
 
-jogo.iniciar();
-atualizarTela();
+// ── Loop principal ──────────────────────────────────────────
 
 function atualizarTela() {
     document.getElementById("segredo").innerHTML = jogo.segredo.join(" ");
@@ -104,10 +109,82 @@ function atualizarTela() {
         tentadasArr.length > 0 ? tentadasArr.join("  ") : "—";
 }
 
-function chutar() {
-    var entrada = document.getElementById("entrada").value;
-    if (!/^[a-zA-ZÀ-ú]$/.test(entrada)) return;
-    jogo.chuteLetra(entrada.trim().toUpperCase(), "Player 1"); // trocar pelo nome do YT depois
-    atualizarTela();
-    document.getElementById("entrada").value = "";
+function setChatStatus(texto) {
+    document.getElementById("chat-status-text").innerHTML = texto;
 }
+
+function setCountdown(texto) {
+    document.getElementById("countdown").innerHTML = texto;
+}
+
+// Roda uma rodada de votação e retorna uma Promise que resolve quando o tempo acabar
+function rodadaVotacao() {
+    return new Promise((resolve) => {
+        var segundos = TEMPO_VOTACAO;
+        setChatStatus("VOTING OPEN — SEND A LETTER!");
+        setCountdown("VOTING: " + segundos + "S");
+
+        var tick = setInterval(() => {
+            segundos--;
+            setCountdown("VOTING: " + segundos + "S");
+            if (segundos <= 0) {
+                clearInterval(tick);
+                resolve();
+            }
+        }, 1000);
+    });
+}
+
+// Countdown entre rounds
+function countdownEntreRounds() {
+    return new Promise((resolve) => {
+        var segundos = TEMPO_ENTRE_ROUNDS;
+        setCountdown("NEXT ROUND IN " + segundos + "S...");
+
+        var tick = setInterval(() => {
+            segundos--;
+            setCountdown("NEXT ROUND IN " + segundos + "S...");
+            if (segundos <= 0) {
+                clearInterval(tick);
+                setCountdown("");
+                resolve();
+            }
+        }, 1000);
+    });
+}
+
+// Loop principal — roda indefinidamente até fechar a aba
+async function loopPrincipal() {
+    while (true) {
+        // Escolhe palavra (por enquanto fixa, depois vira aleatória)
+        jogo.palavra = "chuchu".toUpperCase();
+        jogo.iniciar();
+        setChatStatus("WAITING FOR CHAT...");
+
+        // Fica rodando rodadas enquanto o jogo estiver ativo
+        while (jogo.loopJogo) {
+            await rodadaVotacao();
+
+            if (!jogo.loopJogo) break;
+
+            // Pega a letra mais votada e chuta
+            var vencedora = jogo.letraVencedora();
+            if (vencedora) {
+                setChatStatus("VOTING RESULT: " + vencedora);
+                // Por enquanto usa "Chat" como jogador — depois vem do YT
+                jogo.chuteLetra(vencedora, "Chat");
+                atualizarTela();
+            } else {
+                setChatStatus("NO VOTES — SKIPPING...");
+            }
+        }
+
+        // Round acabou — espera antes do próximo
+        setChatStatus("ROUND OVER!");
+        await countdownEntreRounds();
+    }
+}
+
+// Inicia
+jogo.iniciar();
+loopPrincipal();

@@ -133,6 +133,7 @@
             letter-spacing: 0.15em;
         }
 
+        /* Mensagem de evento (win/lose) */
         #mensagem {
             font-size: clamp(0.4rem, 1.2vw, 0.9rem);
             color: var(--gb-dark);
@@ -147,43 +148,46 @@
             50%       { opacity: 0; }
         }
 
-        .input-row {
-            display: flex;
-            gap: 3%;
+        /* Status do chat */
+        .chat-status {
             flex-shrink: 0;
-        }
-
-        #entrada {
-            flex: 1;
-            background: var(--gb-bg);
             border: 2px solid var(--gb-dark);
-            color: var(--gb-dark);
-            font-family: 'Press Start 2P', monospace;
-            font-size: clamp(0.8rem, 2.5vw, 2rem);
-            text-align: center;
-            padding: 1.5vh 1vw;
-            outline: none;
-            text-transform: uppercase;
-            box-shadow: 3px 3px 0 var(--gb-dark);
+            padding: 1.2vh 1vw;
+            display: flex;
+            align-items: center;
+            gap: 4%;
+            background: var(--gb-bg);
         }
-        #entrada:disabled { opacity: 0.35; }
 
-        button {
+        .dot {
+            width: clamp(6px, 1vw, 12px);
+            height: clamp(6px, 1vw, 12px);
+            border-radius: 50%;
             background: var(--gb-dark);
-            border: none;
-            color: var(--white);
-            font-family: 'Press Start 2P', monospace;
-            font-size: clamp(0.3rem, 1vw, 0.7rem);
-            padding: 1.5vh 2vw;
-            cursor: pointer;
-            box-shadow: 4px 4px 0 var(--gb-mid);
-            transition: transform 0.1s, box-shadow 0.1s;
-            white-space: nowrap;
+            flex-shrink: 0;
+            animation: pulse 1.2s ease-in-out infinite;
         }
-        button:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--gb-mid); }
-        button:active { transform: translate(2px,2px);   box-shadow: 2px 2px 0 var(--gb-mid); }
-        button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        #chat-status-text {
+            font-size: clamp(0.25rem, 0.85vw, 0.55rem);
+            color: var(--gb-dark);
+        }
+
+        /* Countdown pro próximo round */
+        #countdown {
+            font-size: clamp(0.3rem, 1vw, 0.7rem);
+            color: var(--gb-mid);
+            text-align: center;
+            flex-shrink: 0;
+            min-height: 1em;
+        }
+
+        /* Leaderboard */
         .lb-section { flex-shrink: 0; }
 
         .lb-section-title {
@@ -237,7 +241,7 @@
             <div id="letras-usadas">—</div>
         </div>
 
-        <!-- Center: word + message + input -->
+        <!-- Center: word + status + countdown -->
         <div class="panel center">
             <div class="panel-label">WORD</div>
 
@@ -247,10 +251,14 @@
 
             <div id="mensagem"></div>
 
-            <div class="input-row">
-                <input type="text" id="entrada" maxlength="1" placeholder="?">
-                <button onclick="chutar()">GUESS</button>
+            <!-- Status do chat ao vivo -->
+            <div class="chat-status">
+                <div class="dot"></div>
+                <div id="chat-status-text">WAITING FOR CHAT...</div>
             </div>
+
+            <!-- Countdown entre rounds -->
+            <div id="countdown"></div>
         </div>
 
         <!-- Right: leaderboard -->
@@ -280,11 +288,9 @@
             var wrap = document.querySelector('.segredo-wrap');
             var el = document.getElementById('segredo');
             if (!el.textContent.trim()) return;
-
             var maxW = wrap.clientWidth * 0.92;
             var maxH = wrap.clientHeight * 0.75;
             var size = 16;
-
             el.style.fontSize = size + 'px';
             while ((el.scrollWidth <= maxW && el.offsetHeight <= maxH) && size < 200) {
                 size += 2;
