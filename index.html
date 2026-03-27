@@ -56,7 +56,6 @@
             padding: 0.8vh 0;
             border-bottom: 3px solid var(--gb-dark);
         }
-
         header h1 {
             font-size: clamp(0.8rem, 2.5vw, 2rem);
             color: var(--gb-dark);
@@ -84,13 +83,10 @@
 
         .left  { grid-area: left; }
         .right { grid-area: right; }
+        .center { grid-area: center; justify-content: space-between; }
 
-        #vidas {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6%;
-        }
-
+        /* Lives */
+        #vidas { display: flex; flex-wrap: wrap; gap: 6%; }
         .coracao {
             font-size: clamp(1.2rem, 3.5vw, 3rem);
             line-height: 1;
@@ -101,6 +97,7 @@
             transform: scale(0.7);
         }
 
+        /* Used letters */
         #letras-usadas {
             font-size: clamp(0.3rem, 1vw, 0.7rem);
             color: var(--gb-mid);
@@ -110,11 +107,7 @@
             flex: 1;
         }
 
-        .center {
-            grid-area: center;
-            justify-content: space-between;
-        }
-
+        /* Word */
         .segredo-wrap {
             flex: 1;
             display: flex;
@@ -125,7 +118,6 @@
             padding: 1vh 0;
             overflow: hidden;
         }
-
         #segredo {
             color: var(--gb-dark);
             text-align: center;
@@ -133,7 +125,7 @@
             letter-spacing: 0.15em;
         }
 
-        /* Mensagem de evento (win/lose) */
+        /* Event message (win/lose) */
         #mensagem {
             font-size: clamp(0.4rem, 1.2vw, 0.9rem);
             color: var(--gb-dark);
@@ -142,35 +134,26 @@
             flex-shrink: 0;
             animation: blink 0.8s step-end infinite;
         }
-
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50%       { opacity: 0; }
         }
 
-        /* Status do chat */
-        .chat-status {
+        /* ── VOTING AREA ── */
+        .voting-area {
             flex-shrink: 0;
             border: 2px solid var(--gb-dark);
+            background: var(--gb-bg);
             padding: 1.2vh 1vw;
             display: flex;
+            flex-direction: column;
+            gap: 1vh;
+        }
+
+        .voting-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 4%;
-            background: var(--gb-bg);
-        }
-
-        .dot {
-            width: clamp(6px, 1vw, 12px);
-            height: clamp(6px, 1vw, 12px);
-            border-radius: 50%;
-            background: var(--gb-dark);
-            flex-shrink: 0;
-            animation: pulse 1.2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%       { opacity: 0.4; transform: scale(0.7); }
         }
 
         #chat-status-text {
@@ -178,24 +161,89 @@
             color: var(--gb-dark);
         }
 
-        /* Countdown pro próximo round */
         #countdown {
-            font-size: clamp(0.3rem, 1vw, 0.7rem);
-            color: var(--gb-mid);
-            text-align: center;
-            flex-shrink: 0;
-            min-height: 1em;
+            font-size: clamp(0.3rem, 1vw, 0.65rem);
+            color: var(--gb-dark);
+        }
+
+        /* Live vote bars */
+        #vote-bars {
+            display: flex;
+            gap: 3%;
+            align-items: flex-end;
+            height: clamp(30px, 5vh, 60px);
+            min-height: 30px;
+        }
+
+        .vote-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            height: 100%;
+            justify-content: flex-end;
+            gap: 2px;
+        }
+
+        .vote-bar-count {
+            font-size: clamp(0.18rem, 0.6vw, 0.38rem);
+            color: var(--gb-dark);
+        }
+
+        .vote-bar {
+            width: 100%;
+            background: var(--gb-dark);
+            min-height: 3px;
+            transition: height 0.3s ease;
+        }
+
+        .vote-bar-letter {
+            font-size: clamp(0.22rem, 0.7vw, 0.45rem);
+            color: var(--gb-dark);
+        }
+
+        .vote-bar-wrap.leader .vote-bar { background: var(--gb-mid); }
+        .vote-bar-wrap.leader .vote-bar-letter { color: var(--gb-mid); }
+
+        /* Result flash */
+        #result-flash {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 56, 15, 0.88);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 3vh;
+        }
+        #result-flash.show { display: flex; }
+
+        #result-letter {
+            font-size: clamp(4rem, 18vw, 12rem);
+            color: var(--gb-bg);
+            line-height: 1;
+            animation: popIn 0.3s ease;
+        }
+
+        #result-label {
+            font-size: clamp(0.5rem, 2vw, 1.2rem);
+            color: var(--gb-light);
+            letter-spacing: 3px;
+        }
+
+        @keyframes popIn {
+            0%   { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1);   opacity: 1; }
         }
 
         /* Leaderboard */
         .lb-section { flex-shrink: 0; }
-
         .lb-section-title {
             font-size: clamp(0.28rem, 0.85vw, 0.58rem);
             color: var(--gb-dark);
             margin-bottom: 0.8vh;
         }
-
         .lb-entry {
             font-size: clamp(0.24rem, 0.75vw, 0.52rem);
             color: var(--gb-mid);
@@ -219,6 +267,13 @@
     </style>
 </head>
 <body>
+
+    <!-- Result flash overlay -->
+    <div id="result-flash">
+        <div id="result-letter"></div>
+        <div id="result-label">CHAT VOTED!</div>
+    </div>
+
     <div class="layout">
 
         <header>
@@ -241,7 +296,7 @@
             <div id="letras-usadas">—</div>
         </div>
 
-        <!-- Center: word + status + countdown -->
+        <!-- Center -->
         <div class="panel center">
             <div class="panel-label">WORD</div>
 
@@ -251,25 +306,23 @@
 
             <div id="mensagem"></div>
 
-            <!-- Status do chat ao vivo -->
-            <div class="chat-status">
-                <div class="dot"></div>
-                <div id="chat-status-text">WAITING FOR CHAT...</div>
+            <!-- Voting area -->
+            <div class="voting-area">
+                <div class="voting-header">
+                    <div id="chat-status-text">WAITING...</div>
+                    <div id="countdown"></div>
+                </div>
+                <div id="vote-bars"></div>
             </div>
-
-            <!-- Countdown entre rounds -->
-            <div id="countdown"></div>
         </div>
 
         <!-- Right: leaderboard -->
         <div class="panel right">
             <div class="panel-label">LEADERBOARD</div>
-
             <div class="lb-section">
                 <div class="lb-section-title">★ TODAY</div>
                 <div id="lb-dia"></div>
             </div>
-
             <div class="lb-section">
                 <div class="lb-section-title">★ ALL TIME</div>
                 <div id="lb-geral"></div>
@@ -277,7 +330,6 @@
         </div>
 
         <footer>WORD GUESS • CHAT EDITION</footer>
-
     </div>
 
     <script src="leaderboard.js"></script>
@@ -299,7 +351,6 @@
             size -= 4;
             el.style.fontSize = size + 'px';
         }
-
         window.addEventListener('resize', ajustarFonteSegredo);
     </script>
 </body>
